@@ -51,5 +51,4 @@ class LentaNews:
             return False
 
 
-lenta_news = LentaNews(num_news=3)
-print(lenta_news.get_news())
+
