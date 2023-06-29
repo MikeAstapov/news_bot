@@ -35,6 +35,6 @@ def add_user_agreement(params):
     base.commit()
 
 
-def select_all_users():
+def select_all_users_with_agreement():
     cur.execute("SELECT user_id FROM lenta_users WHERE agreement = 1")
     return cur.fetchall()

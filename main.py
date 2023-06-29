@@ -1,11 +1,10 @@
 from datetime import datetime
-from lenta_news_class import LentaNews
 from aiogram import Bot, Dispatcher, types
 from aiogram.utils import executor
-
 import db
 from config import TOKEN
 from buttons import keyboard, keyboard_buttons
+from lenta_news_class import NewsParser
 
 # Замените token на токен вашего бота
 bot = Bot(token=TOKEN)
@@ -52,28 +51,36 @@ async def send_news(message: types.Message):
 
 @dp.callback_query_handler(lambda query: query.data in ['1', '2', '3', '4', '5'])
 async def return_news_number(callback_query: types.CallbackQuery):
-    lenta = LentaNews(int(callback_query.data))
+    lenta = NewsParser("https://lenta.ru/rss/top7", int(callback_query.data))
     news_list = lenta.get_news()
     for news in news_list:
+        text = news['text']
+        photo = news['photo']
         await bot.send_message(callback_query.message.chat.id,
-                               f"{news}")
+                               f"{text} {photo}")
+    await bot.answer_callback_query(callback_query.id)
+
 
 last_news = None
+
+
 @dp.message_handler(commands=['spam'])
 async def send_message_with_last_news(message):
     global last_news
-    lenta = LentaNews()
-    current_news = lenta.get_news()
+    lenta = NewsParser("https://lenta.ru/rss/top7", 1)  # Получить только одну новость
+    news_list = lenta.get_news()
 
-    if last_news != current_news:
-        for user in db.select_all_users():
-            for news_item in current_news:
-                await bot.send_message(user[0], news_item)
-    last_news = current_news
+    if len(news_list) > 0:
+        current_news = news_list[0]['text']
+        current_foto = news_list[0]['photo']
 
+        if last_news != current_news:
+            for user in db.select_all_users_with_agreement():
+                await bot.send_message(user[0], current_news + current_foto)
+        last_news = current_news
 
 
 if __name__ == '__main__':
     print('Бот запущен')
-    print(db.select_all_users())
+    print(db.select_all_users_with_agreement())
     executor.start_polling(dp, skip_updates=True)
