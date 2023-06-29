@@ -25,23 +25,30 @@ class LentaNews:
         self.news_titles = self.soup.find_all('li', class_='parts-page__item')
         self.last_news = self.news_titles[:num_news]
 
-    def get_news(self) -> str:
-        # Возвращаем свою строку, если нет новостей
+    def get_news(self) -> List[str]:
+        # Создаем пустой список для хранения новостей
+        news_list = []
+
+        # Проверяем, есть ли новости
         if not self.last_news:
-            return "Новостей нет. Скорее всего у сайта lenta.ru проблемы :)"
-        result = ""
-        for title in self.last_news:
-            title_text = title.find('h3')
-            if title_text is not None:
-                title_text = title_text.text.strip()
-                title_link = title.find('a')['href']
-                if not title_link.startswith('http://') and not title_link.startswith('https://'):
-                    result += f"{title_text}\n" \
-                              f"Текст статьи смотрите по ссылке : https://lenta.ru/{title_link}\n\n"
-                else:
-                    result += f"{title_text}\n" \
-                              f"Текст статьи смотрите по ссылке : {title_link}\n\n"
-        return result
+            # Если нет новостей, добавляем сообщение в список
+            news_list.append("Новостей нет. Скорее всего у сайта lenta.ru проблемы :)")
+        else:
+            # Если есть новости, обрабатываем каждую новость
+            for title in self.last_news:
+                title_text = title.find('h3')
+                if title_text is not None:
+                    title_text = title_text.text.strip()
+                    title_link = title.find('a')['href']
+                    if not title_link.startswith('http://') and not title_link.startswith('https://'):
+                        news_list.append(f"{title_text}\n"
+                                         f"Текст статьи смотрите по ссылке: https://lenta.ru/{title_link}\n")
+                    else:
+                        news_list.append(f"{title_text}\n"
+                                         f"Текст статьи смотрите по ссылке: {title_link}\n")
+
+        # Возвращаем список новостей
+        return news_list
 
     def check_internet_connection(self) -> bool:
         try:
