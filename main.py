@@ -53,7 +53,7 @@ async def send_news(message: types.Message):
 
 @dp.callback_query_handler(lambda query: query.data in ['1', '2', '3', '4', '5'])
 async def return_news_number(callback_query: types.CallbackQuery):
-    lenta = NewsParser("https://lenta.ru/rss/top7", int(callback_query.data))
+    lenta = NewsParser("https://lenta.ru/rss/news", int(callback_query.data))
     news_list = lenta.get_news()
     for news in news_list:
         text = news['text']
@@ -69,7 +69,7 @@ last_news = None
 @dp.message_handler(commands=['spam'])
 async def send_message_with_last_news(message):
     global last_news
-    lenta = NewsParser("https://lenta.ru/rss/top7", 1)  # Получить только одну новость
+    lenta = NewsParser("https://lenta.ru/rss/news", 1)  # Получить только одну новость
     news_list = lenta.get_news()
 
     if len(news_list) > 0:
@@ -80,6 +80,7 @@ async def send_message_with_last_news(message):
         if last_news != current_news:
             for user in db.select_all_users_with_agreement():
                 await bot.send_message(user[0], current_news + ' ' + current_foto)
+                print(f'новость о {current_news[:30]} пользователю {user[0]} отправлена')
         last_news = current_news
 
 
@@ -90,7 +91,7 @@ async def command_not_found(message: types.Message):
 
 
 async def scheduler():
-    aioschedule.every(60).seconds.do(send_message_with_last_news, 'message')
+    aioschedule.every(45).seconds.do(send_message_with_last_news, 'message')
     while True:
         await aioschedule.run_pending()
         await asyncio.sleep(1)
