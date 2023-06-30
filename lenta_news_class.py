@@ -13,14 +13,14 @@ class NewsParser:
         for entry in feed.entries:
             if count >= self.num_news:
                 break
-            if 'enclosures' in entry:
-                for enclosure in entry.enclosures:
-                    if enclosure.type.startswith('image'):
-                        news_list.append({
-                            'text': entry.title + ": " + entry.summary,
-                            'photo': enclosure.href
-                        })
-                        count += 1
+            enclosures = entry.get('enclosures', [])
+            for enclosure in enclosures:
+                if enclosure.get('type', '').startswith('image'):
+                    news_list.append({
+                        'text': entry.get('title', '') + ": " + entry.get('summary', ''),
+                        'photo': enclosure.get('href', '')
+                    })
+                    count += 1
 
         return news_list
 

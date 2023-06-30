@@ -36,13 +36,13 @@ async def agree_keyboard(callback_query: types.CallbackQuery):
 
 
 @dp.callback_query_handler(lambda query: query.data == 'Не согласен')
-async def agree_keyboard(callback_query: types.CallbackQuery):
+async def disagree_keyboard(callback_query: types.CallbackQuery):
     await bot.answer_callback_query(callback_query.id)
     params = (0, callback_query.from_user.id)
     db.delete_user_agreement(params)
     await callback_query.message.answer(
-        "Вы не согласились получать новости онлайн.Используйте меню /start если передумаете :)")
-    await callback_query.message.answer("С помощью команды /news можете посмотреть последние новости")
+        "Вы отказались получать новости онлайн.Используйте меню /start если передумаете :)")
+    await callback_query.message.answer("С помощью команды /news можно посмотреть последние новости")
 
 
 # Обработчик команды /news
@@ -86,7 +86,7 @@ async def send_message_with_last_news(message):
 @dp.message_handler()
 async def command_not_found(message: types.Message):
     await message.delete()
-    await message.answer(f"Команда {message.text} не найдена")
+    await message.answer(f"Команда {message.text} не найдена.Используйте меню для использования бота")
 
 
 async def scheduler():
