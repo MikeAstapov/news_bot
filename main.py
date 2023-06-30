@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime
 from aiogram import Bot, Dispatcher, types
 from aiogram.utils import executor
@@ -5,6 +6,7 @@ import db
 from config import TOKEN
 from buttons import keyboard, keyboard_buttons
 from lenta_news_class import NewsParser
+import aioschedule
 
 # Замените token на токен вашего бота
 bot = Bot(token=TOKEN)
@@ -74,13 +76,31 @@ async def send_message_with_last_news(message):
         current_news = news_list[0]['text']
         current_foto = news_list[0]['photo']
 
+
         if last_news != current_news:
             for user in db.select_all_users_with_agreement():
-                await bot.send_message(user[0], current_news + current_foto)
+                await bot.send_message(user[0], current_news + ' ' + current_foto)
         last_news = current_news
 
 
+@dp.message_handler()
+async def command_not_found(message: types.Message):
+    await message.delete()
+    await message.answer(f"Команда {message.text} не найдена")
+
+
+async def scheduler():
+    aioschedule.every(60).seconds.do(send_message_with_last_news, 'message')
+    while True:
+        await aioschedule.run_pending()
+        await asyncio.sleep(1)
+
+
+async def on_startup(_):
+    print("Бот запущен")
+    asyncio.create_task(scheduler())
+
+
 if __name__ == '__main__':
-    print('Бот запущен')
     print(db.select_all_users_with_agreement())
-    executor.start_polling(dp, skip_updates=True)
+    executor.start_polling(dp, skip_updates=True, on_startup=on_startup)
